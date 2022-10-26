@@ -1,9 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:aplicativo_filmes_flutter/app/models/discover_filmes.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter_modular/flutter_modular.dart';
 import 'package:flutter/material.dart';
-
-const String _apikey = "86dd5e9b9b24eef059e8e20e0c23ac6d";
+import 'package:http/http.dart' as http;
 
 class SliderPage extends StatefulWidget {
   final String title;
@@ -37,31 +37,28 @@ class SliderPageState extends State<SliderPage> {
             color: Colors.black,
           ),
           Flexible(
-            child: Row(
+            child: Flex(
+              direction: Axis.horizontal,
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                IconButton(
-                    onPressed: () => {btnCarouselController.previousPage()},
-                    icon: const Icon(Icons.arrow_back_ios)),
                 Expanded(
                   child: SizedBox(
-                    height: double.maxFinite,
+                    height: MediaQuery.of(context).size.height / 5,
                     child: CarouselSlider.builder(
                       carouselController: btnCarouselController,
                       itemCount: widget.filmes.length,
                       itemBuilder: (context, index, realIndex) {
                         String url =
-                            "https://image.tmdb.org/t/p/original${widget.filmes[index].posterPath}";
-                        return buildImage(url);
+                            "https://image.tmdb.org/t/p/original${widget.filmes[index].backdropPath}";
+                        return buildImage(url, widget.filmes[index]);
                       },
-                      options: CarouselOptions(),
+                      options: CarouselOptions(
+                        aspectRatio: 2.9,
+                      ),
                     ),
                   ),
                 ),
-                IconButton(
-                    onPressed: () => {btnCarouselController.nextPage()},
-                    icon: const Icon(Icons.arrow_forward_ios)),
               ],
             ),
           ),
@@ -73,12 +70,31 @@ class SliderPageState extends State<SliderPage> {
     );
   }
 
-  Widget buildImage(String url) => Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8),
-        color: Colors.white,
-        child: Image.network(
-          url,
-          width: double.maxFinite,
-        ),
+  Future<void> getImage(String url, DiscoverFilmes filme) async {
+    filme.posterPathBytes ??= (await http.get(Uri.parse(url))).bodyBytes;
+  }
+
+  Widget buildImage(String url, DiscoverFilmes filme) => FutureBuilder(
+        future: getImage(url, filme),
+        builder: (context, snapshot) {
+          if (filme.posterPathBytes == null) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 8),
+              color: const Color.fromARGB(29, 250, 250, 250),
+            );
+          }
+          return ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 8),
+                color: const Color.fromARGB(29, 250, 250, 250),
+                child: Image.memory(
+                  filme.posterPathBytes as Uint8List,
+                  cacheWidth: 662,
+                  cacheHeight: 372,
+                  fit: BoxFit.cover,
+                ),
+              ));
+        },
       );
 }

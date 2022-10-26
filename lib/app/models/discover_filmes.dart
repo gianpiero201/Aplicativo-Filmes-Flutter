@@ -1,8 +1,10 @@
+import 'package:flutter/foundation.dart';
+
 class DiscoverFilmes {
   final bool? adult;
   final String? backdropPath;
   final List<int>? genreIds;
-  final int? id;
+  late final int? id;
   final String? originalLanguage;
   final String? originalTitle;
   final String? overview;
@@ -13,25 +15,27 @@ class DiscoverFilmes {
   final bool? video;
   final double? voteAverage;
   final int? voteCount;
+  Uint8List? posterPathBytes;
 
-  DiscoverFilmes(
-      {this.adult,
-      this.backdropPath,
-      this.genreIds,
-      this.id,
-      this.originalLanguage,
-      this.originalTitle,
-      this.overview,
-      this.popularity,
-      this.posterPath,
-      this.releaseDate,
-      this.title,
-      this.video,
-      this.voteAverage,
-      this.voteCount});
+  DiscoverFilmes({
+    this.adult,
+    this.backdropPath,
+    this.genreIds,
+    this.id,
+    this.originalLanguage,
+    this.originalTitle,
+    this.overview,
+    this.popularity,
+    this.posterPath,
+    this.releaseDate,
+    this.title,
+    this.video,
+    this.voteAverage,
+    this.voteCount,
+  });
 
-  List<DiscoverFilmes> fromJson(Map<String, dynamic> json) {
-    List<dynamic> results = json['results'];
+  List<DiscoverFilmes> fromJson(Map<String, dynamic> json, String resultField) {
+    List<dynamic> results = json[resultField];
     List<DiscoverFilmes> filmes = [];
 
     results.forEach((dynamic filme) {
@@ -48,7 +52,7 @@ class DiscoverFilmes {
         releaseDate: filme['release_date'],
         title: filme['title'],
         video: filme['video'],
-        voteAverage: filme['vote_average'],
+        voteAverage: filme['vote_average'].toDouble(),
         voteCount: filme['vote_count'],
       ));
     });

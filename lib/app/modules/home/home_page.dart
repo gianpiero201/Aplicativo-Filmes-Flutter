@@ -1,9 +1,13 @@
 import 'package:aplicativo_filmes_flutter/app/models/discover_filmes.dart';
+import 'package:aplicativo_filmes_flutter/app/modules/movie_item_list/movie_item_list_page.dart';
 import 'package:aplicativo_filmes_flutter/app/modules/slider/slider_page.dart';
+import 'package:aplicativo_filmes_flutter/app/models/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:flutter_triple/flutter_triple.dart';
+import 'package:rx/converters.dart';
+import 'package:rx/core.dart';
 import 'home_store.dart';
-import 'dart:async';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class HomePage extends StatefulWidget {
@@ -16,7 +20,8 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late final HomeStore store;
-  late List<DiscoverFilmes> filmes = [];
+  late final FilmesStore filmeStore;
+
   TextStyle textStyle = const TextStyle(
     color: Colors.white,
     fontSize: 16,
@@ -26,19 +31,23 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     store = Modular.get<HomeStore>();
-    store.selectLoading.addListener(() => setLoading());
-    store.selectState.addListener(() => filmes = store.state);
+    filmeStore = Modular.get<FilmesStore>();
     super.initState();
   }
 
   @override
   void dispose() {
     Modular.dispose<HomeStore>();
+    Modular.dispose<FilmesStore>();
     super.dispose();
   }
 
-  Future<void> getFilmes() async {
-    await store.setStoreFromPage(1);
+  Future<void> getFilmes() {
+    return store.setStore();
+  }
+
+  Future<void> getSliderFilmes() {
+    return filmeStore.setStore();
   }
 
   void setLoading() {
@@ -53,6 +62,21 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    EasyLoading.show();
+
+    Utils.forkJoinUtil([getFilmes(), getSliderFilmes()])
+        .toObservable()
+        .subscribe(
+          Observer(
+            next: (List<void> result) {
+              EasyLoading.dismiss();
+            },
+            error: (error, stackTrace) {
+              EasyLoading.showError(error.toString());
+            },
+          ),
+        );
+
     return Container(
       padding: const EdgeInsets.all(30),
       decoration: const BoxDecoration(color: Color.fromARGB(255, 50, 50, 50)),
@@ -61,6 +85,24 @@ class _HomePageState extends State<HomePage> {
         child: SafeArea(
           child: Column(
             children: [
+              ScopedBuilder<FilmesStore, Object, List<DiscoverFilmes>>(
+                store: filmeStore,
+                onError: (context, error) {
+                  if (EasyLoading.isShow) {
+                    return const Text("");
+                  }
+                  EasyLoading.showError(error.toString());
+                  return const Text("Erro");
+                },
+                onState: (context, state) {
+                  return SizedBox(
+                    height: MediaQuery.of(context).size.height / 4,
+                    child: SliderPage(
+                      filmes: state,
+                    ),
+                  );
+                },
+              ),
               Flex(
                 direction: Axis.horizontal,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -68,7 +110,7 @@ class _HomePageState extends State<HomePage> {
                   const Text("Principais Filmes"),
                   TextButton(
                     onPressed: () => {
-                      Navigator.pushNamed(context, '/filmes-list'),
+                      Navigator.pushNamed(context, '/filmes-list/'),
                     },
                     child: const Text(
                       "VER TODOS",
@@ -77,20 +119,31 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
-              Flexible(
-                child: FutureBuilder(
-                    future: getFilmes(),
-                    builder: (context, snapshot) {
-                      if (filmes.isEmpty) {
-                        EasyLoading.show(
-                          status: 'Loading Movies',
-                        );
-                        return const Text("");
-                      }
-                      return SliderPage(
-                        filmes: filmes,
-                      );
-                    }),
+              ScopedBuilder<HomeStore, Object, List<DiscoverFilmes>>(
+                store: store,
+                onError: (context, error) {
+                  if (EasyLoading.isShow) {
+                    return const Text("");
+                  }
+                  EasyLoading.showError(error.toString());
+                  return const Text("Erro");
+                },
+                onState: (context, state) {
+                  return Container(
+                    height: MediaQuery.of(context).size.height / 2,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(16)),
+                      border: Border.all(color: Colors.black, width: 2),
+                    ),
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(10),
+                      itemCount: state.length,
+                      itemBuilder: (context, index) => MovieItemListPage(
+                        filme: state[index],
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
           ),

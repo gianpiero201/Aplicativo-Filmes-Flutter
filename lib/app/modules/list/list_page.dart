@@ -73,24 +73,17 @@ class ListPageState extends State<ListPage> {
               direction: Axis.horizontal,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Flex(
-                  direction: Axis.horizontal,
-                  children: [
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.list,
-                        color: Colors.white,
-                      ),
+                Flexible(
+                  child: IconButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/');
+                    },
+                    icon: const Icon(
+                      Icons.arrow_circle_left_outlined,
+                      color: Colors.black,
+                      size: 30,
                     ),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(
-                        Icons.grid_view_rounded,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
                 Flex(
                   direction: Axis.horizontal,
@@ -137,6 +130,13 @@ class ListPageState extends State<ListPage> {
                   itemBuilder: (context, item, index) {
                     return MovieItemListPage(
                       filme: item as DiscoverFilmes,
+                      onClick: (filme) {
+                        Navigator.pushNamed(
+                          context,
+                          '/filme-details/',
+                          arguments: filme,
+                        );
+                      },
                     );
                   },
                 ),

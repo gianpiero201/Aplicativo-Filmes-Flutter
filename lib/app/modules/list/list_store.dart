@@ -25,7 +25,7 @@ class ListStore extends NotifierStore<Exception, List<DiscoverFilmes>> {
     DiscoverFilmes discoverFilmes = DiscoverFilmes();
 
     List<DiscoverFilmes> filmes =
-        discoverFilmes.fromJson(json.decode(response.body));
+        discoverFilmes.fromJson(json.decode(response.body), 'results');
 
     if (filmes.isNotEmpty) {
       update(filmes);

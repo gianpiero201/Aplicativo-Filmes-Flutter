@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:aplicativo_filmes_flutter/app/modules/list/list_store.dart';
+import 'package:aplicativo_filmes_flutter/app/modules/details/details_store.dart';
  
 void main() {
-  late ListStore store;
+  late DetailsStore store;
 
   setUpAll(() {
-    store = ListStore();
+    store = DetailsStore();
   });
 
   test('increment count', () async {
