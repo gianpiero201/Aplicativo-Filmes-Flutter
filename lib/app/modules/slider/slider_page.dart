@@ -8,13 +8,16 @@ import 'package:http/http.dart' as http;
 class SliderPage extends StatefulWidget {
   final String title;
   final List<DiscoverFilmes> filmes;
+  final Function(DiscoverFilmes filme)? onClick;
+
   bool? isLoading = false;
-  SliderPage(
-      {Key? key,
-      this.title = 'SliderPage',
-      required this.filmes,
-      this.isLoading})
-      : super(key: key);
+  SliderPage({
+    Key? key,
+    this.title = 'SliderPage',
+    required this.filmes,
+    this.isLoading,
+    this.onClick,
+  }) : super(key: key);
 
   @override
   SliderPageState createState() {
@@ -24,8 +27,6 @@ class SliderPage extends StatefulWidget {
 
 class SliderPageState extends State<SliderPage> {
   CarouselController btnCarouselController = CarouselController();
-
-  void isLoading() {}
 
   @override
   Widget build(BuildContext context) {
@@ -71,30 +72,38 @@ class SliderPageState extends State<SliderPage> {
   }
 
   Future<void> getImage(String url, DiscoverFilmes filme) async {
-    filme.posterPathBytes ??= (await http.get(Uri.parse(url))).bodyBytes;
+    filme.backdropPathBytes ??= (await http.get(Uri.parse(url))).bodyBytes;
   }
 
   Widget buildImage(String url, DiscoverFilmes filme) => FutureBuilder(
         future: getImage(url, filme),
         builder: (context, snapshot) {
-          if (filme.posterPathBytes == null) {
+          if (filme.backdropPathBytes == null) {
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 8),
               color: const Color.fromARGB(29, 250, 250, 250),
             );
           }
-          return ClipRRect(
+          return InkWell(
+            onTap: () {
+              if (widget.onClick != null) {
+                widget.onClick!(filme);
+              }
+            },
+            child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 8),
                 color: const Color.fromARGB(29, 250, 250, 250),
                 child: Image.memory(
-                  filme.posterPathBytes as Uint8List,
+                  filme.backdropPathBytes as Uint8List,
                   cacheWidth: 662,
                   cacheHeight: 372,
                   fit: BoxFit.cover,
                 ),
-              ));
+              ),
+            ),
+          );
         },
       );
 }

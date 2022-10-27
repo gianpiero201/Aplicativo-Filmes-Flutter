@@ -16,6 +16,7 @@ class DiscoverFilmes {
   final double? voteAverage;
   final int? voteCount;
   Uint8List? posterPathBytes;
+  Uint8List? backdropPathBytes;
 
   DiscoverFilmes({
     this.adult,

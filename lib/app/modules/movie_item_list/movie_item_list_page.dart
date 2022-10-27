@@ -19,6 +19,11 @@ class MovieItemListPage extends StatefulWidget {
 
 class MovieItemListPageState extends State<MovieItemListPage> {
   @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     String urlImage =
         "https://image.tmdb.org/t/p/original${widget.filme.posterPath}";

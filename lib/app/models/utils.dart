@@ -6,9 +6,8 @@ import 'package:flutter/src/widgets/async.dart' as asyncF;
 import 'package:http/http.dart' as http;
 
 class Utils {
-  static Future<List<dynamic>> forkJoinUtil(
-      List<Future<dynamic>> requesitions) async {
-    List<dynamic> results = [];
+  static Future<List<T>> forkJoinUtil<T>(List<Future<T>> requesitions) async {
+    List<T> results = [];
 
     for (var item in requesitions) {
       results.add(await item);

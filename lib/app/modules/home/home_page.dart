@@ -5,10 +5,12 @@ import 'package:aplicativo_filmes_flutter/app/models/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:flutter_triple/flutter_triple.dart';
+import 'package:http/http.dart';
 import 'package:rx/converters.dart';
 import 'package:rx/core.dart';
 import 'home_store.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:http/http.dart' as http;
 
 class HomePage extends StatefulWidget {
   final String title;
@@ -60,6 +62,60 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void clickOnFilme(filme) {
+    if (EasyLoading.isShow) {
+      return;
+    }
+
+    Navigator.pushNamed(
+      context,
+      '/filme-details/',
+      arguments: filme,
+    );
+  }
+
+  Future<void> loadAllImages() async {
+    List<Future<Response>> backdropList = [];
+    List<Future<Response>> posterList = [];
+
+    for (var filme in filmeStore.state) {
+      String url = "https://image.tmdb.org/t/p/original${filme.backdropPath}";
+      backdropList.add(http.get(Uri.parse(url)));
+    }
+    for (var filme in store.state) {
+      String url = "https://image.tmdb.org/t/p/original${filme.posterPath}";
+      posterList.add(http.get(Uri.parse(url)));
+    }
+
+    Utils.forkJoinUtil(
+            [Utils.forkJoinUtil(backdropList), Utils.forkJoinUtil(posterList)])
+        .toObservable()
+        .subscribe(
+      Observer(
+        next: ((value) {
+          for (Response resp in value[0]) {
+            var filme = filmeStore.state.firstWhere(
+                (element) => resp.request!.url
+                    .toString()
+                    .contains(element.backdropPath!),
+                orElse: () => DiscoverFilmes());
+            filme.backdropPathBytes ??= resp.bodyBytes;
+          }
+
+          for (Response resp in value[1]) {
+            var filme = filmeStore.state.firstWhere(
+                (element) => resp.request!.url
+                    .toString()
+                    .contains(element.backdropPath!),
+                orElse: () => DiscoverFilmes());
+            filme.backdropPathBytes ??= resp.bodyBytes;
+          }
+          EasyLoading.dismiss();
+        }),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     EasyLoading.show();
@@ -69,6 +125,7 @@ class _HomePageState extends State<HomePage> {
         .subscribe(
           Observer(
             next: (List<void> result) {
+              // loadAllImages();
               EasyLoading.dismiss();
             },
             error: (error, stackTrace) {
@@ -99,6 +156,7 @@ class _HomePageState extends State<HomePage> {
                     height: MediaQuery.of(context).size.height / 4,
                     child: SliderPage(
                       filmes: state,
+                      onClick: clickOnFilme,
                     ),
                   );
                 },
@@ -140,6 +198,7 @@ class _HomePageState extends State<HomePage> {
                       itemCount: state.length,
                       itemBuilder: (context, index) => MovieItemListPage(
                         filme: state[index],
+                        onClick: clickOnFilme,
                       ),
                     ),
                   );

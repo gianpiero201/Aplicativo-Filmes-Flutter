@@ -23,6 +23,11 @@ class ListPageState extends State<ListPage> {
   TextEditingController searchController = TextEditingController();
   final PagingController _pagingController = PagingController(firstPageKey: 1);
   FocusNode searchFocus = FocusNode();
+  TextStyle textStyle = const TextStyle(
+    color: Colors.white,
+    fontSize: 14,
+    decoration: TextDecoration.none,
+  );
 
   @override
   void initState() {
@@ -66,83 +71,86 @@ class ListPageState extends State<ListPage> {
     return Container(
       padding: const EdgeInsets.all(30),
       decoration: const BoxDecoration(color: Color.fromARGB(255, 50, 50, 50)),
-      child: SafeArea(
-        child: Column(
-          children: [
-            Flex(
-              direction: Axis.horizontal,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: IconButton(
-                    onPressed: () {
-                      Navigator.pushNamed(context, '/');
-                    },
-                    icon: const Icon(
-                      Icons.arrow_circle_left_outlined,
-                      color: Colors.black,
-                      size: 30,
-                    ),
-                  ),
-                ),
-                Flex(
-                  direction: Axis.horizontal,
-                  children: [
-                    Visibility(
-                      visible: _searchVisibility,
-                      child: SizedBox(
-                        height: 35,
-                        width: 150,
-                        child: TextField(
-                          controller: searchController,
-                          focusNode: searchFocus,
-                          decoration: const InputDecoration(
-                            labelStyle: TextStyle(color: Colors.white),
-                            hintText: 'Pesquisar',
-                            hintStyle: TextStyle(
-                              color: Color.fromARGB(150, 190, 190, 190),
-                            ),
-                          ),
-                        ),
+      child: DefaultTextStyle(
+        style: textStyle,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Flex(
+                direction: Axis.horizontal,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: IconButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/');
+                      },
+                      icon: const Icon(
+                        Icons.arrow_circle_left_outlined,
+                        color: Colors.black,
+                        size: 30,
                       ),
                     ),
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _searchVisibility = !_searchVisibility;
-                          Future.delayed(const Duration(milliseconds: 100), () {
-                            if (_searchVisibility) {
-                              searchFocus.requestFocus();
-                            }
-                          });
-                        });
-                      },
-                      icon: const Icon(Icons.search),
-                    ),
-                  ],
-                )
-              ],
-            ),
-            Flexible(
-              child: PagedListView(
-                pagingController: _pagingController,
-                builderDelegate: PagedChildBuilderDelegate(
-                  itemBuilder: (context, item, index) {
-                    return MovieItemListPage(
-                      filme: item as DiscoverFilmes,
-                      onClick: (filme) {
-                        Navigator.pushNamed(
-                          context,
-                          '/filme-details/',
-                          arguments: filme,
-                        );
-                      },
-                    );
-                  },
+                  ),
+                  // Flex(
+                  //   direction: Axis.horizontal,
+                  //   children: [
+                  //     Visibility(
+                  //       visible: _searchVisibility,
+                  //       child: SizedBox(
+                  //         height: 35,
+                  //         width: 150,
+                  //         child: TextField(
+                  //           controller: searchController,
+                  //           focusNode: searchFocus,
+                  //           decoration: const InputDecoration(
+                  //             labelStyle: TextStyle(color: Colors.white),
+                  //             hintText: 'Pesquisar',
+                  //             hintStyle: TextStyle(
+                  //               color: Color.fromARGB(150, 190, 190, 190),
+                  //             ),
+                  //           ),
+                  //         ),
+                  //       ),
+                  //     ),
+                  //     IconButton(
+                  //       onPressed: () {
+                  //         setState(() {
+                  //           _searchVisibility = !_searchVisibility;
+                  //           Future.delayed(const Duration(milliseconds: 100), () {
+                  //             if (_searchVisibility) {
+                  //               searchFocus.requestFocus();
+                  //             }
+                  //           });
+                  //         });
+                  //       },
+                  //       icon: const Icon(Icons.search),
+                  //     ),
+                  //   ],
+                  // )
+                ],
+              ),
+              Flexible(
+                child: PagedListView(
+                  pagingController: _pagingController,
+                  builderDelegate: PagedChildBuilderDelegate(
+                    itemBuilder: (context, item, index) {
+                      return MovieItemListPage(
+                        filme: item as DiscoverFilmes,
+                        onClick: (filme) {
+                          Navigator.pushNamed(
+                            context,
+                            '/filme-details/',
+                            arguments: filme,
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
